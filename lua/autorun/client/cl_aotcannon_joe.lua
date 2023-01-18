@@ -22,7 +22,7 @@ hook.Add("CalcView", "AOTCannon:CalcView", function (ply, pos, angles, fov)
         origin = pos + Vector(0,0,68),
         angles = angles,
         fov = fov,
-        drawviewer = true
+        drawviewer = false
     }
 
     //view.origin = par:LocalToWorld(Vector(-20,50,80))
