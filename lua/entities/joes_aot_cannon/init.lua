@@ -27,7 +27,7 @@ function ENT:Initialize()
 	self:SetRenderMode( RENDERMODE_TRANSALPHA )
 	self:AddFlags( FL_OBJECT )
 
-	self.debug = true
+	self.debug = false
 	self.seat = nil
 	self.curtilt = 0
 	self.nextattack = 0
@@ -52,8 +52,8 @@ end
 
 function ENT:SpawnSeat()
 	self.seat = ents.Create("prop_vehicle_prisoner_pod")
-	self.seat:SetModel("models/props_interiors/Furniture_Lamp01a.mdl")
-	self.seat:SetPos(self:LocalToWorld(Vector(15,60,0)))
+	self.seat:SetModel("models/vehicles/prisoner_pod_inner.mdl")
+	self.seat:SetPos(self:LocalToWorld(Vector(15,55,0)))
 	local ang = self:GetAngles()
 	ang:RotateAroundAxis(ang:Up(),-90)
 	self.seat:SetAngles(ang)
@@ -66,7 +66,6 @@ function ENT:SpawnSeat()
 	self.seat:SetNoDraw(true)
 	self.seat:SetNotSolid(true)
 	self.seat:SetCollisionGroup(COLLISION_GROUP_WORLD)
-
 
 end
 
@@ -89,7 +88,7 @@ function ENT:SetBarrelTilt(newtilt)
 end
 
 function ENT:SpawnCannon()
-	self.BARREL = ents.Create("prop_physics")
+	self.BARREL = ents.Create("joes_aot_barrel")
 	self.BARREL:SetModel("models/aot_model/cannon.mdl")
 	self.BARREL:SetPos(self:LocalToWorld(Vector(0,0,1.5)))
 	self.BARREL:SetAngles(self:GetAngles())
@@ -98,7 +97,8 @@ function ENT:SpawnCannon()
 	local phys = self.BARREL:GetPhysicsObject()
 	phys:EnableMotion(false)
 	phys:Wake()
-	self.BARREL:SetPlaybackRate(0.1)
+	self.BARREL:SetPlaybackRate(1)
+	
 	self:SetBarrel(self.BARREL)
 end
 
@@ -123,19 +123,21 @@ function ENT:FireShell()
 		effectdata:SetAngles(effectang)
 		//util.Effect("explosion", effectdata)
 		ParticleEffect("zay_shot", self.BARREL:LocalToWorld(Vector(-90,0,62)), effectang, self)
+
+		self:EmitSound("aot/joe_canon5.wav",100,100,1,CHAN_AUTO,32)
 	end)
-	timer.Simple(0.2, function()
-		self.BARREL:ResetSequence("shoot")
+	timer.Simple(0.1, function()
+		if not IsValid(self) or not IsValid(self.BARREL) then return end
+		self.BARREL:ResetSequence(self.BARREL:LookupSequence("shoot"))
 		util.ScreenShake(self:GetPos(), 10, 50, 0.6, 600)
 	end)	
 
-	self:EmitSound("aot/cannon4.mp3",150,100,1)
 	local ent = ents.Create("joe_shell")
-	ent:SetPos(self.BARREL:LocalToWorld(Vector(-30,0,60)))
+	ent:SetPos(self.BARREL:LocalToWorld(Vector(-15,0,60)))
 	local ang = self.BARREL:GetAngles()
 	ang:RotateAroundAxis(ang:Right(), 90)
 	ent:SetAngles(ang)
-	//ent:Spawn()
+	ent:Spawn()
 
 	local phys = ent:GetPhysicsObject()
 	if IsValid(phys) then
@@ -153,7 +155,7 @@ function ENT:FireShell()
 	end
 
 	self.firing = false
-	self.nextmove = CurTime() + 0.75
+	self.nextmove = CurTime() + self.BARREL:SequenceDuration(self.BARREL:LookupSequence("shoot"))
 	self:Reload()
 end
 

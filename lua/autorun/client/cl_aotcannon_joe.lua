@@ -19,12 +19,21 @@ hook.Add("CalcView", "AOTCannon:CalcView", function (ply, pos, angles, fov)
     if not IsValid(par) then return end
     if par:GetClass() != "joes_aot_cannon" then return end
 
+    local vehicle = seat
+    local _, ang, _ = vehicle:GetVehicleViewPosition()
+    ang = par:GetAngles()
+    local seatOffset = vehicle:GetAttachment(vehicle:LookupAttachment("vehicle_driver_eyes")).Ang
+    //seatOffset = -par:GetAngles()
+    local _, turnAng = WorldToLocal(vector_origin, ang, vector_origin, seatOffset)
+
     local view = {
-        origin = par:LocalToWorld(Vector(-20,50,80)),
+        origin = par:LocalToWorld(Vector(200,50,80)),
         angles = angles,
         fov = fov,
-        drawviewer = false
+        drawviewer = true
     }
 
+    seatOffset:RotateAroundAxis(seatOffset:Up(),190)
+    //view.angles = seatOffset
     return view
 end)
