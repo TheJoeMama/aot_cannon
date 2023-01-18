@@ -1,0 +1,9 @@
+ENT.Type = "anim"
+ENT.Base = "base_anim"
+ENT.AutomaticFrameAdvance = true
+ENT.Model = "models/zerochain/props_anno/shell.mdl"
+ENT.Spawnable = false
+ENT.AdminSpawnable = false
+ENT.PrintName = "Shell"
+ENT.Category = "Zeros Artillery"
+ENT.RenderGroup = RENDERGROUP_OPAQUE
