@@ -4,6 +4,7 @@ ENT.Base = "base_gmodentity"
 ENT.PrintName = "AOT Cannon"
 ENT.Category = "Joe | AOT"
 
+ENT.AutomaticFrameAdvance = true
 ENT.Spawnable = true
 ENT.AdminSpawnable = false
 

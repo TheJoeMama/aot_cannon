@@ -51,7 +51,13 @@ function ENT:PhysicsCollide(data, phys)
 	for k,v in pairs(ents.FindInSphere(self:GetPos(),150)) do
 		if IsValid(v) then
 			local d = DamageInfo()
-			d:SetDamage(15 )
+			if v:IsPlayer() then
+				d:SetDamage( 150 )
+			elseif v:IsNPC() then
+				d:SetDamage( 1500 )
+			else
+				d:SetDamage( 200 )
+			end
 			d:SetAttacker( self )
 			d:SetDamageType( DMG_BLAST )
 			v:TakeDamageInfo( d )

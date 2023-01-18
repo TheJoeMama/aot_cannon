@@ -20,10 +20,10 @@ hook.Add("CalcView", "AOTCannon:CalcView", function (ply, pos, angles, fov)
     if par:GetClass() != "joes_aot_cannon" then return end
 
     local view = {
-        origin = par:GetBarrel():LocalToWorld(Vector(20,50,70)),
+        origin = par:LocalToWorld(Vector(-20,50,80)),
         angles = angles,
         fov = fov,
-        drawviewer = true
+        drawviewer = false
     }
 
     return view

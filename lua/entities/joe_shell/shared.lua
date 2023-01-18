@@ -5,5 +5,5 @@ ENT.Model = "models/zerochain/props_anno/shell.mdl"
 ENT.Spawnable = false
 ENT.AdminSpawnable = false
 ENT.PrintName = "Shell"
-ENT.Category = "Zeros Artillery"
+ENT.Category = "Joe | AOT"
 ENT.RenderGroup = RENDERGROUP_OPAQUE

@@ -27,9 +27,11 @@ function ENT:Initialize()
 	self:SetRenderMode( RENDERMODE_TRANSALPHA )
 	self:AddFlags( FL_OBJECT )
 
+	self.debug = true
 	self.seat = nil
 	self.curtilt = 0
 	self.nextattack = 0
+	self.nextmove = 0
 	self.firing = false
 	
 	local phys = self:GetPhysicsObject()
@@ -96,7 +98,7 @@ function ENT:SpawnCannon()
 	local phys = self.BARREL:GetPhysicsObject()
 	phys:EnableMotion(false)
 	phys:Wake()
-
+	self.BARREL:SetPlaybackRate(0.1)
 	self:SetBarrel(self.BARREL)
 end
 
@@ -111,6 +113,7 @@ function ENT:OnRemove()
 end
 
 function ENT:FireShell()
+	self.firing = true
 	local effectang = self.BARREL:GetAngles()
 	effectang:RotateAroundAxis(effectang:Right(), 90)
 	timer.Simple(0, function()
@@ -118,38 +121,39 @@ function ENT:FireShell()
 		effectdata:SetScale(5)
 		effectdata:SetOrigin(self.BARREL:LocalToWorld(Vector(-90,0,60)))
 		effectdata:SetAngles(effectang)
-		//util.Effect("zay_shot", effectdata)
+		//util.Effect("explosion", effectdata)
 		ParticleEffect("zay_shot", self.BARREL:LocalToWorld(Vector(-90,0,62)), effectang, self)
 	end)
+	timer.Simple(0.2, function()
+		self.BARREL:ResetSequence("shoot")
+		util.ScreenShake(self:GetPos(), 10, 50, 0.6, 600)
+	end)	
 
-	self:EmitSound("aot/cannon1.mp3")
+	self:EmitSound("aot/cannon4.mp3",150,100,1)
 	local ent = ents.Create("joe_shell")
-	ent:SetPos(self.BARREL:LocalToWorld(Vector(-15,0,60)))
+	ent:SetPos(self.BARREL:LocalToWorld(Vector(-30,0,60)))
 	local ang = self.BARREL:GetAngles()
-	ang.p = ang.p - 90
-	ang.y = ang.y + math.random(-1, 1)
-	//ang:RotateAroundAxis(ang:Right(), 90)
+	ang:RotateAroundAxis(ang:Right(), 90)
 	ent:SetAngles(ang)
-	ent:Spawn()
-
-	util.ScreenShake(self:GetPos(), 5, 50, 0.3, 350)
+	//ent:Spawn()
 
 	local phys = ent:GetPhysicsObject()
-    if IsValid(phys) then
-        phys:Wake()
-        phys:EnableMotion(true)
-        phys:SetMass(1000)
+	if IsValid(phys) then
+		phys:Wake()
+		phys:EnableMotion(true)
+		phys:SetMass(5000)
 
-        local tickrate = 66.6 * engine.TickInterval()
-        local force = 5000
-        force = force * tickrate
+		local tickrate = 66.6 * engine.TickInterval()
+		local force = 5000 - math.Clamp(4000 * ( self.curtilt / -45),0,4500)
+		force = force * tickrate
 
 
-        phys:ApplyForceCenter((ent:GetUp() * phys:GetMass()) * force)
-        phys:ApplyTorqueCenter( (ang:Right()  * phys:GetMass()) * -1 )
-    end
+		phys:ApplyForceCenter((ent:GetUp() * phys:GetMass()) * force)
+		phys:ApplyTorqueCenter( (ang:Right()  * phys:GetMass()) * 1 )
+	end
 
 	self.firing = false
+	self.nextmove = CurTime() + 0.75
 	self:Reload()
 end
 
@@ -177,35 +181,34 @@ function ENT:Think()
 	local curang = self:GetAngles()
 	local newang = curang
 	local newtilt = self.curtilt
-	local inmove = false
 
 	local driver = self.seat:GetDriver()
+	if self.debug and not IsValid(driver) then
+		driver = Entity(1)
+	end
+
 	if IsValid(driver) then
-		if driver:KeyDown(IN_MOVERIGHT) then
-			newang = LerpAngle(0.5,newang,newang - Angle(0,1,0))
-			inmove = true
-		end
-		if driver:KeyDown(IN_MOVELEFT) then
-			newang = LerpAngle(0.5,newang,newang + Angle(0,1,0))
-			inmove = true
-		end
-
-		if driver:KeyDown(IN_FORWARD) then
-			newtilt = Lerp(0.5,newtilt,newtilt - 1)
-			inmove = true
-		end
-		if driver:KeyDown(IN_BACK) then
-			newtilt = Lerp(0.5,newtilt,newtilt + 1)
-			inmove = true
-		end
-
-		self:SetAngles(newang)
-		self:SetBarrelTilt(newtilt)
-
-		if not inmove then
-			if driver:KeyDown(IN_ATTACK) and self.firing == false and self.nextattack < CurTime() then
-				self:FireShell()
+		if self.nextmove < CurTime() and self.firing == false then
+			if driver:KeyDown(IN_MOVERIGHT) then
+				newang = LerpAngle(0.5,newang,newang - Angle(0,1,0))
 			end
+			if driver:KeyDown(IN_MOVELEFT) then
+				newang = LerpAngle(0.5,newang,newang + Angle(0,1,0))
+			end
+
+			if driver:KeyDown(IN_FORWARD) then
+				newtilt = Lerp(0.5,newtilt,newtilt - 1)
+			end
+			if driver:KeyDown(IN_BACK) then
+				newtilt = Lerp(0.5,newtilt,newtilt + 1)
+			end
+
+			self:SetAngles(newang)
+			self:SetBarrelTilt(newtilt)
+		end
+
+		if ( driver:KeyDown(IN_ATTACK) or self.debug ) and self.firing == false and self.nextattack < CurTime() then
+			self:FireShell()
 		end
 	end
 
