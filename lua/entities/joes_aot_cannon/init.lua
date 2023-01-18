@@ -52,8 +52,8 @@ end
 
 function ENT:SpawnSeat()
 	self.seat = ents.Create("prop_vehicle_prisoner_pod")
-	self.seat:SetModel("models/vehicles/prisoner_pod_inner.mdl")
-	self.seat:SetPos(self:LocalToWorld(Vector(15,55,0)))
+	self.seat:SetModel("models/props_c17/FurnitureCouch001a.mdl") // avoid exit sequence
+	self.seat:SetPos(self:LocalToWorld(Vector(-15,55,8)))
 	local ang = self:GetAngles()
 	ang:RotateAroundAxis(ang:Up(),-90)
 	self.seat:SetAngles(ang)
@@ -110,18 +110,18 @@ function ENT:OnRemove()
 	if IsValid(self.BARREL) then
 		SafeRemoveEntity(self.BARREL)
 	end
+	if IsValid(self.seat) then
+		if IsValid(self.seat:GetDriver()) then self.seat:GetDriver():ExitVehicle() end
+		SafeRemoveEntity(self.seat)
+	end
 end
 
 function ENT:FireShell()
 	self.firing = true
-	local effectang = self.BARREL:GetAngles()
-	effectang:RotateAroundAxis(effectang:Right(), 90)
 	timer.Simple(0, function()
-		local effectdata = EffectData()
-		effectdata:SetScale(5)
-		effectdata:SetOrigin(self.BARREL:LocalToWorld(Vector(-90,0,60)))
-		effectdata:SetAngles(effectang)
-		//util.Effect("explosion", effectdata)
+		if not IsValid(self) or not IsValid(self.BARREL) then return end
+		local effectang = self.BARREL:GetAngles()
+		effectang:RotateAroundAxis(effectang:Right(), 90)
 		ParticleEffect("zay_shot", self.BARREL:LocalToWorld(Vector(-90,0,62)), effectang, self)
 
 		self:EmitSound("aot/joe_canon5.wav",100,100,1,CHAN_AUTO,32)
@@ -138,6 +138,7 @@ function ENT:FireShell()
 	ang:RotateAroundAxis(ang:Right(), 90)
 	ent:SetAngles(ang)
 	ent:Spawn()
+	ent:DrawShadow(false)
 
 	local phys = ent:GetPhysicsObject()
 	if IsValid(phys) then
@@ -160,26 +161,37 @@ function ENT:FireShell()
 end
 
 function ENT:Use(ply)
-	if IsValid(ply) and ply:IsPlayer() then
+	local driver = self.seat:GetDriver()
+	if not IsValid(ply) or not ply:IsPlayer() then return end
+	if ply == driver then
+		ply:ExitVehicle()
+	elseif not IsValid(driver) then
 		if IsValid(self.seat) then
 			ply:EnterVehicle(self.seat)
-			
-		else
+			timer.Simple(0, function()
+				if not IsValid( ply ) or not IsValid( self ) then return end
+				local Ang = Angle(0,-90,0)
+		
+				/*
+				Ang = self:GetAngles()
+				Ang:RotateAroundAxis(Ang:Right(), 180)
+				//Ang = (ply:GetPos() - self.BARREL:LocalToWorld(Vector(-50,40,20))):Angle()
+				Ang.r = 0
+				//Ang:RotateAroundAxis(Ang:Right(), 180)
+				//Ang:RotateAroundAxis(Ang:Up(), 0)
+				//Ang:RotateAroundAxis(Ang:Forward(), 180)
+				//Ang.p = -Ang.p
+				*/
+
+				ply:SetEyeAngles( Ang )
+			end)
+		else 
 			self:SpawnSeat()
 		end
 	end
 end
 
 function ENT:Think()
-	/*local curpos = self.BARREL:GetPos()
-	local originalpos = self:GetPos()
-	originalpos.z = curpos.z
-	self.BARREL:SetPos(originalpos)
-	local curang = self.BARREL:GetAngles()
-	local originalang = self:GetAngles()
-	originalang.p = curang.p
-	self.BARREL:SetAngles(originalang)*/
-
 	local curang = self:GetAngles()
 	local newang = curang
 	local newtilt = self.curtilt
