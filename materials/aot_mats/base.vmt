@@ -1,0 +1,20 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "aot_mats/base"
+   	"$bumpmap" "aot_mats/base_norm"
+	"$surfaceprop" "Metal"
+
+    	"$color2"    "[1 1 1]"
+   	"$blendTintByBaseAlpha"    "1"
+
+    	"$phong" "1"
+   	"$phongboost"    "5"
+	
+    	"$phongfresnelranges"    "[0.05 0.115 0.945]"
+
+    
+    	"$normalmapalphaenvmapmask"        "1"
+    	"$envmapfresnel"    "1"
+
+    	"$envmaptint"        "[.5 .5 .5]"
+}
