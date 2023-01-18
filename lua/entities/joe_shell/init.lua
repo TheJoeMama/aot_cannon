@@ -46,19 +46,21 @@ function ENT:PhysicsCollide(data, phys)
 		end
 	end)
 
-	zay.f.CreateNetEffect("shell_explosion",self:GetPos())
+	local selfpos = self:GetPos()
+	zay.f.CreateNetEffect("shell_explosion",selfpos) // Zeros Artillery handles Particle Creation
 
-	for k,v in pairs(ents.FindInSphere(self:GetPos(),150)) do
+	self.player = IsValid(self.player) and self.player or self
+	for k,v in pairs(ents.FindInSphere(selfpos,300)) do
 		if IsValid(v) then
 			local d = DamageInfo()
 			if v:IsPlayer() then
-				d:SetDamage( 150 )
+				d:SetDamage( 200 )
 			elseif v:IsNPC() then
 				d:SetDamage( 1500 )
 			else
-				d:SetDamage( 200 )
+				d:SetDamage( 500 )
 			end
-			d:SetAttacker( self )
+			d:SetAttacker( self.player )
 			d:SetDamageType( DMG_BLAST )
 			v:TakeDamageInfo( d )
 		end

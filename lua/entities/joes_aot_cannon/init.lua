@@ -139,6 +139,7 @@ function ENT:FireShell()
 	ent:SetAngles(ang)
 	ent:Spawn()
 	ent:DrawShadow(false)
+	ent.player = self.seat:GetDriver()
 
 	local phys = ent:GetPhysicsObject()
 	if IsValid(phys) then
@@ -166,6 +167,9 @@ function ENT:Use(ply)
 	if ply == driver then
 		ply:ExitVehicle()
 	elseif not IsValid(driver) then
+		local result = hook.Run("AOTCANNON_CanUserEnterArtillery", self, ply)
+		if result == false then return end
+
 		if IsValid(self.seat) then
 			ply:EnterVehicle(self.seat)
 			timer.Simple(0, function()
@@ -222,6 +226,8 @@ function ENT:Think()
 		end
 
 		if ( driver:KeyDown(IN_ATTACK) or self.debug ) and self.firing == false and self.nextattack < CurTime() then
+			local result = hook.Run("AOTCANNON_CanUserFireArtillery", self, driver)
+			if result == false then return end
 			self:FireShell()
 		end
 	end
